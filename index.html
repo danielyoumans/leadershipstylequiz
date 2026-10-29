@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What's Your Leadership Style? | Northouse Ch. 8-11</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  .bsu-blue { background-color: #0033A0; }
+  .bsu-orange { background-color: #D64309; }
+  .bsu-blue-text { color: #0033A0; }
+  .bsu-orange-text { color: #D64309; }
+  .fade { animation: fadeIn .35s ease-in; }
+  @keyframes fadeIn { from {opacity:0; transform: translateY(6px);} to {opacity:1; transform: translateY(0);} }
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+<div class="max-w-3xl mx-auto px-4 py-10">
+
+  <header class="text-center mb-8">
+    <div class="inline-block bsu-blue text-white text-xs font-semibold px-3 py-1 rounded-full mb-3 tracking-wide">BOISE STATE UNIVERSITY</div>
+    <h1 class="text-3xl font-bold bsu-blue-text">What's Your Leadership Style?</h1>
+    <p class="text-slate-500 mt-2 text-sm">Based on Northouse, <em>Leadership: Theory and Practice</em>, 10th ed., Chapters 8-11</p>
+  </header>
+
+  <!-- INTRO -->
+  <div id="intro" class="bg-white rounded-2xl shadow-md p-8 fade">
+    <p class="mb-4">This 12-question self-assessment maps your natural tendencies to four leadership approaches covered this week:</p>
+    <ul class="list-disc pl-5 mb-5 space-y-1 text-sm">
+      <li><strong class="bsu-blue-text">Transformational</strong> — inspires through vision and raises followers to higher levels of motivation (Ch. 8)</li>
+      <li><strong class="bsu-blue-text">Authentic</strong> — leads from self-awareness, transparency, and an ethical core (Ch. 9)</li>
+      <li><strong class="bsu-blue-text">Servant</strong> — puts followers' growth and well-being first (Ch. 10)</li>
+      <li><strong class="bsu-blue-text">Adaptive</strong> — mobilizes people to navigate change and tough, unscripted challenges (Ch. 11)</li>
+    </ul>
+    <p class="text-sm text-slate-500 mb-6">There are no "right" answers — pick the response that feels most like how you actually lead (or would lead), not how you think you should answer. Takes about 5 minutes.</p>
+    <button onclick="startQuiz()" class="bsu-orange text-white font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition w-full">Start Quiz</button>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quiz" class="hidden bg-white rounded-2xl shadow-md p-8 fade">
+    <div class="w-full bg-slate-200 rounded-full h-2 mb-6">
+      <div id="progressBar" class="bsu-orange h-2 rounded-full transition-all" style="width:0%"></div>
+    </div>
+    <p id="qCounter" class="text-xs text-slate-400 mb-2 font-semibold tracking-wide"></p>
+    <h2 id="question" class="text-lg font-semibold mb-5"></h2>
+    <div id="options" class="space-y-3 mb-6"></div>
+    <div class="flex justify-between">
+      <button id="backBtn" onclick="prevQuestion()" class="text-slate-500 font-medium px-4 py-2 rounded-lg hover:bg-slate-100 transition">Back</button>
+      <button id="nextBtn" onclick="nextQuestion()" disabled class="bsu-blue text-white font-semibold px-6 py-2 rounded-lg disabled:opacity-30 transition">Next</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results" class="hidden bg-white rounded-2xl shadow-md p-8 fade">
+    <h2 class="text-xl font-bold bsu-blue-text mb-1">Your Dominant Style:</h2>
+    <h3 id="resultTitle" class="text-3xl font-extrabold bsu-orange-text mb-4"></h3>
+    <p id="resultDesc" class="mb-4 text-slate-700"></p>
+    <div class="bg-slate-50 rounded-xl p-4 mb-6">
+      <p class="text-sm font-semibold text-slate-500 mb-1">Growth tip:</p>
+      <p id="resultTip" class="text-sm text-slate-700"></p>
+    </div>
+    <h4 class="font-semibold mb-2 text-sm text-slate-600">Your profile across all four styles</h4>
+    <canvas id="resultChart" height="180" class="mb-6"></canvas>
+    <p class="text-xs text-slate-400 mb-6">Most leaders are a blend. A low score on a style isn't a weakness — it reflects where you naturally lean versus where you may need to stretch, depending on the situation (see Ch. 11 on adaptive challenges).</p>
+    <button onclick="restartQuiz()" class="bsu-blue text-white font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition w-full">Retake Quiz</button>
+  </div>
+
+  <footer class="text-center text-xs text-slate-400 mt-10">
+    Daniel Youmans, PMP · Boise State University<br>
+    Source: Northouse, P. G. (2021). <em>Leadership: Theory and Practice</em> (10th ed.). SAGE Publications.
+  </footer>
+</div>
+
+<script>
+const styles = {
+  transformational: {
+    name: "Transformational Leadership",
+    desc: "You lead by painting a compelling vision and raising people to see beyond their own self-interest toward a shared purpose. You tend to use idealized influence, inspirational motivation, intellectual stimulation, and individualized consideration (Bass; Northouse Ch. 8) to move people further than they thought they could go.",
+    tip: "Watch for over-reliance on charisma and vision at the expense of day-to-day structure. Pair your inspiration with the consistency of transactional practices (clear expectations, follow-through) so the vision doesn't outrun execution."
+  },
+  authentic: {
+    name: "Authentic Leadership",
+    desc: "You lead from a strong sense of self-awareness and transparency, grounded in a clear set of personal values. You practice balanced processing (seeking out viewpoints that challenge your own) and relational transparency — people trust you because they know where you stand (Northouse Ch. 9).",
+    tip: "Authenticity is powerful, but it can tip into rigidity if you treat your values as non-negotiable in every context. Practice adapting your approach to the situation without compromising your ethical core."
+  },
+  servant: {
+    name: "Servant Leadership",
+    desc: "You lead by putting followers' growth, needs, and well-being ahead of your own. Listening, empathy, healing, persuasion, and building community (Greenleaf; Northouse Ch. 10) show up naturally in how you operate — your influence comes from service, not position.",
+    tip: "Make sure service to the team doesn't become avoidance of hard calls. Servant leaders still need to set direction and hold people accountable — serving people well sometimes means telling them something they don't want to hear."
+  },
+  adaptive: {
+    name: "Adaptive Leadership",
+    desc: "You lead by mobilizing people to tackle tough, unscripted problems rather than relying on technical fixes alone. You distinguish between technical challenges (known solutions) and adaptive challenges (requiring new learning and change), and you treat leadership as an activity anyone can exercise, not a title (Heifetz; Northouse Ch. 11).",
+    tip: "Adaptive leadership asks a lot of people — change fatigue is real. Balance the disequilibrium you create by giving the team enough stability and support to stay engaged through the hard stretch."
+  }
+};
+
+const questions = [
+  {q:"A major reorganization is coming and no one knows exactly how to handle it. What's your first move?",
+   opts:[["Paint a picture of what the team can become on the other side of this change","transformational"],
+         ["Be upfront about what you don't know yet and why the change matters to you personally","authentic"],
+         ["Ask the team what they need most right now to feel supported","servant"],
+         ["Name this as a problem with no existing playbook and start a conversation about new ways of working","adaptive"]]},
+  {q:"A team member disagrees with a decision you've made in front of the group. How do you respond?",
+   opts:[["Reframe the disagreement as part of a bigger shared mission everyone's working toward","transformational"],
+         ["Thank them for being honest and openly explain the reasoning behind your decision","authentic"],
+         ["Set the decision aside for a moment and make sure they feel heard first","servant"],
+         ["Use the disagreement as a sign the group needs to wrestle with the issue together, not just defer to you","adaptive"]]},
+  {q:"What does success as a leader look like to you?",
+   opts:[["People doing more than they ever thought they were capable of","transformational"],
+         ["People trusting that what you say and do line up","authentic"],
+         ["People growing and thriving, whether or not they stay on your team","servant"],
+         ["The team learning to solve problems that didn't have a clear answer before","adaptive"]]},
+  {q:"A new hire asks you what matters most to you as a leader. You say:",
+   opts:[["\"I want you to see possibilities you don't see yet in yourself.\"","transformational"],
+         ["\"I want you to always know exactly where I stand.\"","authentic"],
+         ["\"I want you to leave this job better than when you started.\"","servant"],
+         ["\"I want you comfortable figuring things out when there's no instruction manual.\"","adaptive"]]},
+  {q:"When facing a problem the team has never seen before, you tend to:",
+   opts:[["Energize the team around why solving it matters","transformational"],
+         ["Admit you don't have the answer and invite honest input","authentic"],
+         ["Ask who on the team is struggling and check in with them first","servant"],
+         ["Treat it as a chance for the team to learn and adapt, even if it's uncomfortable","adaptive"]]},
+  {q:"How do you typically handle your own mistakes in front of the team?",
+   opts:[["Reframe it quickly as a lesson that fuels the bigger goal","transformational"],
+         ["Own it plainly, without spin, because consistency matters more than image","authentic"],
+         ["Apologize and ask how it affected the team before anything else","servant"],
+         ["Use it as a case study for the team to problem-solve around","adaptive"]]},
+  {q:"What's most likely to frustrate you about a team you're leading?",
+   opts:[["A lack of shared purpose or energy around the mission","transformational"],
+         ["People being guarded or not saying what they really think","authentic"],
+         ["Team members not feeling supported or cared for","servant"],
+         ["The team wanting you to just hand them the answer","adaptive"]]},
+  {q:"A high performer on your team is burned out but hasn't said anything. You:",
+   opts:[["Remind them how much their work contributes to the bigger vision","transformational"],
+         ["Have a direct, honest conversation about what you're noticing","authentic"],
+         ["Prioritize their well-being over the project timeline, even if it costs you","servant"],
+         ["Use it as a sign the team's way of working needs to change, not just this person","adaptive"]]},
+  {q:"How do you build trust with a new team?",
+   opts:[["By getting them excited about where the team is headed","transformational"],
+         ["By being consistent and transparent about my values and reasoning","authentic"],
+         ["By showing up for their individual needs before asking anything of them","servant"],
+         ["By being honest that we'll figure some things out together as we go","adaptive"]]},
+  {q:"Which statement sounds most like something you'd say to your team?",
+   opts:[["\"Let's go further than we thought we could.\"","transformational"],
+         ["\"I'll always tell you the truth, even when it's hard.\"","authentic"],
+         ["\"My job is to make sure you have what you need to succeed.\"","servant"],
+         ["\"This is new territory for all of us — let's learn it together.\"","adaptive"]]},
+  {q:"When a long-standing process stops working, your instinct is to:",
+   opts:[["Rally the team around a bold new direction","transformational"],
+         ["Be honest with the team about what isn't working and why","authentic"],
+         ["Ask how the change will affect people before changing anything","servant"],
+         ["Treat it as an adaptive challenge requiring the team to unlearn old habits","adaptive"]]},
+  {q:"What kind of feedback do you give most naturally?",
+   opts:[["Feedback tied to the bigger picture and what someone is capable of becoming","transformational"],
+         ["Direct, values-based feedback delivered with full transparency","authentic"],
+         ["Feedback focused on supporting the person's growth and development","servant"],
+         ["Feedback that pushes someone to sit with ambiguity and find their own answer","adaptive"]]}
+];
+
+let current = 0;
+let answers = new Array(questions.length).fill(null);
+
+function startQuiz(){
+  document.getElementById('intro').classList.add('hidden');
+  document.getElementById('quiz').classList.remove('hidden');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = questions[current];
+  document.getElementById('qCounter').textContent = `QUESTION ${current+1} OF ${questions.length}`;
+  document.getElementById('question').textContent = q.q;
+  document.getElementById('progressBar').style.width = `${(current/questions.length)*100}%`;
+  const optsDiv = document.getElementById('options');
+  optsDiv.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const selected = answers[current] === i;
+    const btn = document.createElement('button');
+    btn.className = `w-full text-left px-4 py-3 rounded-xl border transition ${selected ? 'border-[#0033A0] bg-blue-50 font-medium' : 'border-slate-200 hover:border-slate-400'}`;
+    btn.textContent = opt[0];
+    btn.onclick = () => { answers[current] = i; renderQuestion(); };
+    optsDiv.appendChild(btn);
+  });
+  document.getElementById('backBtn').style.visibility = current === 0 ? 'hidden' : 'visible';
+  document.getElementById('nextBtn').disabled = answers[current] === null;
+  document.getElementById('nextBtn').textContent = current === questions.length - 1 ? 'See Results' : 'Next';
+}
+
+function nextQuestion(){
+  if (answers[current] === null) return;
+  if (current === questions.length - 1){ showResults(); return; }
+  current++;
+  renderQuestion();
+}
+
+function prevQuestion(){
+  if (current === 0) return;
+  current--;
+  renderQuestion();
+}
+
+function showResults(){
+  const scores = {transformational:0, authentic:0, servant:0, adaptive:0};
+  answers.forEach((ans, idx) => {
+    const styleKey = questions[idx].opts[ans][1];
+    scores[styleKey]++;
+  });
+  const top = Object.keys(scores).reduce((a,b) => scores[a] >= scores[b] ? a : b);
+
+  document.getElementById('quiz').classList.add('hidden');
+  document.getElementById('results').classList.remove('hidden');
+  document.getElementById('resultTitle').textContent = styles[top].name;
+  document.getElementById('resultDesc').textContent = styles[top].desc;
+  document.getElementById('resultTip').textContent = styles[top].tip;
+
+  const labels = Object.keys(scores).map(k => styles[k].name);
+  const data = Object.values(scores);
+  new Chart(document.getElementById('resultChart'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Responses',
+        data: data,
+        backgroundColor: ['#0033A0','#D64309','#5B7FD4','#F2994A'],
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
+    }
+  });
+}
+
+function restartQuiz(){
+  current = 0;
+  answers = new Array(questions.length).fill(null);
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('intro').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
