@@ -9,10 +9,13 @@
 <style>
   .bsu-blue { background-color: #0033A0; }
   .bsu-orange { background-color: #D64309; }
+  /* Darker orange reserved for buttons/small text so white-on-orange clears 4.5:1 with margin (5.3:1) instead of sitting right at the 4.5:1 floor */
+  .bsu-orange-btn { background-color: #C23D08; }
   .bsu-blue-text { color: #0033A0; }
-  .bsu-orange-text { color: #D64309; }
+  .bsu-orange-text { color: #D64309; } /* used only on large (30px+) headings, where the 3:1 large-text threshold applies and 4.5:1 clears it comfortably */
   .fade { animation: fadeIn .35s ease-in; }
   @keyframes fadeIn { from {opacity:0; transform: translateY(6px);} to {opacity:1; transform: translateY(0);} }
+  button:focus-visible, [role="radio"]:focus-visible { outline: 3px solid #0033A0; outline-offset: 2px; }
 </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800">
@@ -21,7 +24,7 @@
   <header class="text-center mb-8">
     <div class="inline-block bsu-blue text-white text-xs font-semibold px-3 py-1 rounded-full mb-3 tracking-wide">BOISE STATE UNIVERSITY</div>
     <h1 class="text-3xl font-bold bsu-blue-text">What's Your Leadership Style?</h1>
-    <p class="text-slate-500 mt-2 text-sm">Based on Northouse, <em>Leadership: Theory and Practice</em>, 10th ed., Chapters 8-11</p>
+    <p class="text-slate-600 mt-2 text-sm">Based on Northouse, <em>Leadership: Theory and Practice</em>, 10th ed., Chapters 8-11</p>
   </header>
 
   <!-- INTRO -->
@@ -33,40 +36,48 @@
       <li><strong class="bsu-blue-text">Servant</strong> — puts followers' growth and well-being first (Ch. 10)</li>
       <li><strong class="bsu-blue-text">Adaptive</strong> — mobilizes people to navigate change and tough, unscripted challenges (Ch. 11)</li>
     </ul>
-    <p class="text-sm text-slate-500 mb-6">There are no "right" answers — pick the response that feels most like how you actually lead (or would lead), not how you think you should answer. Takes about 5 minutes.</p>
-    <button onclick="startQuiz()" class="bsu-orange text-white font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition w-full">Start Quiz</button>
+    <p class="text-sm text-slate-600 mb-6">There are no "right" answers — pick the response that feels most like how you actually lead (or would lead), not how you think you should answer. Takes about 5 minutes.</p>
+    <button onclick="startQuiz()" class="bsu-orange-btn text-white font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition w-full">Start Quiz</button>
   </div>
 
   <!-- QUIZ -->
   <div id="quiz" class="hidden bg-white rounded-2xl shadow-md p-8 fade">
-    <div class="w-full bg-slate-200 rounded-full h-2 mb-6">
+    <div
+      id="progressBarTrack"
+      class="w-full bg-slate-200 rounded-full h-2 mb-6"
+      role="progressbar"
+      aria-label="Quiz progress"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-valuenow="0">
       <div id="progressBar" class="bsu-orange h-2 rounded-full transition-all" style="width:0%"></div>
     </div>
-    <p id="qCounter" class="text-xs text-slate-400 mb-2 font-semibold tracking-wide"></p>
-    <h2 id="question" class="text-lg font-semibold mb-5"></h2>
-    <div id="options" class="space-y-3 mb-6"></div>
+    <p id="qCounter" class="text-xs text-slate-600 mb-2 font-semibold tracking-wide" aria-live="polite"></p>
+    <h2 id="question" class="text-lg font-semibold mb-5" tabindex="-1"></h2>
+    <div id="options" class="space-y-3 mb-6" role="radiogroup" aria-labelledby="question"></div>
     <div class="flex justify-between">
-      <button id="backBtn" onclick="prevQuestion()" class="text-slate-500 font-medium px-4 py-2 rounded-lg hover:bg-slate-100 transition">Back</button>
+      <button id="backBtn" onclick="prevQuestion()" class="text-slate-600 font-medium px-4 py-2 rounded-lg hover:bg-slate-100 transition">Back</button>
       <button id="nextBtn" onclick="nextQuestion()" disabled class="bsu-blue text-white font-semibold px-6 py-2 rounded-lg disabled:opacity-30 transition">Next</button>
     </div>
   </div>
 
   <!-- RESULTS -->
   <div id="results" class="hidden bg-white rounded-2xl shadow-md p-8 fade">
-    <h2 class="text-xl font-bold bsu-blue-text mb-1">Your Dominant Style:</h2>
+    <h2 class="text-xl font-bold bsu-blue-text mb-1" id="resultsHeading" tabindex="-1">Your Dominant Style:</h2>
     <h3 id="resultTitle" class="text-3xl font-extrabold bsu-orange-text mb-4"></h3>
     <p id="resultDesc" class="mb-4 text-slate-700"></p>
     <div class="bg-slate-50 rounded-xl p-4 mb-6">
-      <p class="text-sm font-semibold text-slate-500 mb-1">Growth tip:</p>
+      <p class="text-sm font-semibold text-slate-600 mb-1">Growth tip:</p>
       <p id="resultTip" class="text-sm text-slate-700"></p>
     </div>
-    <h4 class="font-semibold mb-2 text-sm text-slate-600">Your profile across all four styles</h4>
-    <canvas id="resultChart" height="180" class="mb-6"></canvas>
-    <p class="text-xs text-slate-400 mb-6">Most leaders are a blend. A low score on a style isn't a weakness — it reflects where you naturally lean versus where you may need to stretch, depending on the situation (see Ch. 11 on adaptive challenges).</p>
+    <h4 class="font-semibold mb-2 text-sm text-slate-700">Your profile across all four styles</h4>
+    <canvas id="resultChart" height="180" class="mb-2" role="img" aria-label="Bar chart of your responses across the four leadership styles"></canvas>
+    <ul id="chartTextAlt" class="sr-only"></ul>
+    <p class="text-xs text-slate-600 mb-6 mt-4">Most leaders are a blend. A low score on a style isn't a weakness — it reflects where you naturally lean versus where you may need to stretch, depending on the situation (see Ch. 11 on adaptive challenges).</p>
     <button onclick="restartQuiz()" class="bsu-blue text-white font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition w-full">Retake Quiz</button>
   </div>
 
-  <footer class="text-center text-xs text-slate-400 mt-10">
+  <footer class="text-center text-xs text-slate-600 mt-10">
     Daniel Youmans, PMP · Boise State University<br>
     Source: Northouse, P. G. (2021). <em>Leadership: Theory and Practice</em> (10th ed.). SAGE Publications.
   </footer>
@@ -161,6 +172,7 @@ const questions = [
 
 let current = 0;
 let answers = new Array(questions.length).fill(null);
+let chartInstance = null;
 
 function startQuiz(){
   document.getElementById('intro').classList.add('hidden');
@@ -170,22 +182,46 @@ function startQuiz(){
 
 function renderQuestion(){
   const q = questions[current];
+  const pct = Math.round((current/questions.length)*100);
+
   document.getElementById('qCounter').textContent = `QUESTION ${current+1} OF ${questions.length}`;
   document.getElementById('question').textContent = q.q;
-  document.getElementById('progressBar').style.width = `${(current/questions.length)*100}%`;
+
+  document.getElementById('progressBar').style.width = `${pct}%`;
+  const track = document.getElementById('progressBarTrack');
+  track.setAttribute('aria-valuenow', pct);
+  track.setAttribute('aria-valuetext', `Question ${current+1} of ${questions.length}`);
+
   const optsDiv = document.getElementById('options');
   optsDiv.innerHTML = '';
   q.opts.forEach((opt, i) => {
     const selected = answers[current] === i;
     const btn = document.createElement('button');
-    btn.className = `w-full text-left px-4 py-3 rounded-xl border transition ${selected ? 'border-[#0033A0] bg-blue-50 font-medium' : 'border-slate-200 hover:border-slate-400'}`;
-    btn.textContent = opt[0];
+    btn.type = 'button';
+    btn.setAttribute('role', 'radio');
+    btn.setAttribute('aria-checked', selected ? 'true' : 'false');
+    btn.className = `w-full text-left px-4 py-3 rounded-xl border-2 transition flex items-center justify-between gap-3 ${selected ? 'border-[#0033A0] bg-blue-50 font-medium' : 'border-slate-200 hover:border-slate-400'}`;
+    const label = document.createElement('span');
+    label.textContent = opt[0];
+    btn.appendChild(label);
+    if (selected) {
+      const check = document.createElement('span');
+      check.textContent = '✓ Selected';
+      check.className = 'text-xs font-semibold bsu-blue-text shrink-0';
+      check.setAttribute('aria-hidden', 'false');
+      btn.appendChild(check);
+    }
     btn.onclick = () => { answers[current] = i; renderQuestion(); };
     optsDiv.appendChild(btn);
   });
+
   document.getElementById('backBtn').style.visibility = current === 0 ? 'hidden' : 'visible';
   document.getElementById('nextBtn').disabled = answers[current] === null;
   document.getElementById('nextBtn').textContent = current === questions.length - 1 ? 'See Results' : 'Next';
+
+  // Move focus to the question heading so screen reader / keyboard users get the new question announced
+  const qHeading = document.getElementById('question');
+  qHeading.focus();
 }
 
 function nextQuestion(){
@@ -217,14 +253,29 @@ function showResults(){
 
   const labels = Object.keys(scores).map(k => styles[k].name);
   const data = Object.values(scores);
-  new Chart(document.getElementById('resultChart'), {
+
+  // Text alternative for the chart (screen readers / Chart.js canvas has no built-in a11y support)
+  const altList = document.getElementById('chartTextAlt');
+  altList.innerHTML = '';
+  labels.forEach((label, i) => {
+    const li = document.createElement('li');
+    li.textContent = `${label}: ${data[i]} of ${questions.length} responses`;
+    altList.appendChild(li);
+  });
+  document.getElementById('resultChart').setAttribute(
+    'aria-label',
+    `Bar chart of your responses: ${labels.map((l,i) => `${l} ${data[i]}`).join(', ')}`
+  );
+
+  if (chartInstance) { chartInstance.destroy(); }
+  chartInstance = new Chart(document.getElementById('resultChart'), {
     type: 'bar',
     data: {
       labels: labels,
       datasets: [{
         label: 'Responses',
         data: data,
-        backgroundColor: ['#0033A0','#D64309','#5B7FD4','#F2994A'],
+        backgroundColor: ['#0033A0','#C23D08','#5B7FD4','#9A4A14'],
         borderRadius: 6
       }]
     },
@@ -234,6 +285,9 @@ function showResults(){
       scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
     }
   });
+
+  // Move focus to the results heading so the outcome is announced
+  document.getElementById('resultsHeading').focus();
 }
 
 function restartQuiz(){
@@ -241,6 +295,7 @@ function restartQuiz(){
   answers = new Array(questions.length).fill(null);
   document.getElementById('results').classList.add('hidden');
   document.getElementById('intro').classList.remove('hidden');
+  document.getElementById('intro').querySelector('button').focus();
 }
 </script>
 </body>
